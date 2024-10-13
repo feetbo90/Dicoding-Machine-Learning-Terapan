@@ -508,6 +508,24 @@ test_size=0.25 berarti 25% dari data akan menjadi test set.
 
 Membagi data ke dalam train set (75%) dan test set (25%) adalah praktik standar dalam pembelajaran mesin. Ini memungkinkan kita untuk melatih model pada sebagian data dan mengujinya pada data yang tidak digunakan dalam pelatihan, yang memberikan gambaran yang lebih akurat tentang performa model 
 
+### Gunakan Reader untuk Mengatur Skema Data
+
+```python 
+reader = Reader(rating_scale=(0.5, 5.0))
+```
+Kegunaan:
+
+- Menentukan Skala Rating: Kode ini menggunakan kelas Reader dari pustaka Surprise untuk menetapkan skala rating yang digunakan dalam dataset. Dalam contoh ini, skala rating ditetapkan dari 0.5 hingga 5.0.
+- Mendefinisikan Format Data: Reader berfungsi untuk memberitahu pustaka Surprise tentang cara menginterpretasikan data rating. Dengan menentukan skala rating, pustaka dapat mengenali rentang nilai yang valid dan memvalidasi data yang dimasukkan.
+
+### Konversi Data ke Format Surprise
+```python
+data = Dataset.load_from_df(ratings_for_svd, reader)
+```
+Kegunaan:
+
+- Konversi DataFrame: Dataset.load_from_df digunakan untuk mengonversi DataFrame (dalam hal ini, ratings_for_svd) menjadi format yang dapat diproses oleh library Surprise. Ini adalah langkah penting dalam mempersiapkan data untuk pelatihan model.
+
 ## Modeling
 
 Pada tahap ini, akan membangun sistem rekomendasi berdasarkan fitur overview.
@@ -612,18 +630,6 @@ ratings_for_svd = final_df[['userId', 'movieId', 'rating']]
 ```
 
 Data difilter untuk hanya mengambil kolom userId, movieId, dan rating.
-
-### Gunakan Reader untuk Mengatur Skema Data
-
-```python 
-reader = Reader(rating_scale=(0.5, 5.0))
-```
-Reader digunakan untuk menentukan skema data, di mana rating berkisar dari 0.5 hingga 5.0.
-
-### Konversi Data ke Format Surprise
-```python
-data = Dataset.load_from_df(ratings_for_svd, reader)
-```
 
 Data dikonversi ke format Surprise untuk digunakan oleh model SVD.
 
