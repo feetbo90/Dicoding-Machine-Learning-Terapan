@@ -68,48 +68,68 @@ ratings_small_df = pd.read_csv(ratings_small)
 print("Data Movies")
 movies_df.head()
 
+"""**Menampilkan 5 data dari dataset credits**"""
+
 print("\nData Credits")
 credits_df.head()
 
+"""**Menampilkan 5 data dari dataset rating small**"""
+
 ratings_small_df.head()
 
-"""**Melihat info dari dataset movies, ratings dan credits**"""
+"""**Melihat info dari dataset movies**"""
 
 movies_df.info()
 
+"""**Melihat info dari dataset credits**"""
+
 credits_df.info()
+
+"""**Melihat info dari dataset ratings**"""
 
 ratings_small_df.info()
 
-"""**Melihat describe dari masing-masing dataset**"""
+"""**Melihat describe dari dataset movies**"""
 
 movies_df.describe()
 
+"""**Melihat describe dari dataset credits**"""
+
 credits_df.describe()
+
+"""**Melihat describe dari dataset ratings**"""
 
 ratings_small_df.describe()
 
-"""**Melihat Jumlah Baris dan Jumlah Kolom di dataset movies dan credits**"""
+"""**Melihat Jumlah Baris dan Jumlah Kolom di dataset movies**"""
 
 rows, cols = movies_df.shape
 print(f"Jumlah baris dataset movies: {rows}")
 print(f"Jumlah kolom movies: {cols}")
 
+"""**Melihat Jumlah Baris dan Jumlah Kolom di dataset credits**"""
+
 rows, cols = credits_df.shape
 print(f"Jumlah baris dataset credits: {rows}")
 print(f"Jumlah kolom credits: {cols}")
+
+"""**Melihat Jumlah Baris dan Jumlah Kolom di dataset ratings**"""
 
 rows, cols = ratings_small_df.shape
 print(f"Jumlah baris dataset ratings_small: {rows}")
 print(f"Jumlah kolom ratings_small: {cols}")
 
-"""**Melihat jumlah nilai null di setiap kolom**"""
+"""**Melihat jumlah nilai null di dataset movies**"""
 
 null_values_movies = movies_df.isnull().sum()
 null_values_movies
 
+"""**Melihat jumlah nilai null di dataset credits**"""
+
 null_values_credits = credits_df.isnull().sum()
 null_values_credits
+
+"""**Melihat jumlah nilai null di dataset ratings**"""
 
 null_values_ratings_small = ratings_small_df.isnull().sum()
 null_values_ratings_small
@@ -125,7 +145,6 @@ movies_df['runtime'].head()
 
 runtime_mean = movies_df['runtime'].mean()
 movies_df['runtime'] = movies_df['runtime'].fillna(runtime_mean)
-
 movies_df['tagline'] = movies_df['tagline'].fillna(object())
 movies_df['homepage'] = movies_df['homepage'].fillna(object())
 movies_df['overview'] = movies_df['tagline'].fillna(object())
@@ -167,7 +186,41 @@ top_10_movies = top_movies[['title', 'vote_average', 'vote_count', 'score']].hea
 # Menampilkan 10 film terbaik
 top_10_movies
 
-# Mengurutkan DataFrame berdasarkan kolom 'popularity'
+"""**Cek tipe data di kolom 'overview'**"""
+
+overview_types = movies_df['overview'].apply(type)
+print(overview_types.value_counts())
+
+# Mengganti nilai yang bertipe 'object' dengan string kosong
+movies_df['overview'] = movies_df['overview'].apply(lambda x: x if isinstance(x, str) else '')
+
+# Verifikasi tipe data setelah perubahan
+overview_types = movies_df['overview'].apply(type)
+overview_types.value_counts()
+
+"""**clean_text digunakan untuk membersihkan teks dan menghapus baris kosong**
+
+"""
+
+# Fungsi untuk membersihkan teks
+def clean_text(text):
+    if isinstance(text, str):
+        # Mengubah teks menjadi huruf kecil
+        text = text.lower()
+        # Menghapus angka dan karakter khusus
+        text = re.sub(r'[^a-z\s]', '', text)
+    return text
+
+# Terapkan fungsi bersih pada kolom overview
+movies_df['cleaned_overview'] = movies_df['overview'].apply(clean_text)
+
+# Menghapus baris dengan cleaned_overview kosong
+movies_df = movies_df[movies_df['cleaned_overview'].str.strip() != '']
+
+movies_df['cleaned_overview'].head()
+
+"""**Mengurutkan dan menampilkan dataFrame berdasarkan kolom 'popularity'**"""
+
 top_popular_movies = movies_df.sort_values('popularity', ascending=False)
 
 top_10_popular_movies = top_popular_movies[['title', 'popularity', 'vote_average', 'vote_count',
@@ -175,6 +228,8 @@ top_10_popular_movies = top_popular_movies[['title', 'popularity', 'vote_average
 
 # Menampilkan tabel film dengan popularity terbanyak
 top_10_popular_movies
+
+"""**Membuat histogram 10 Film berdasarkan popularitas**"""
 
 # Membuat plot bar dengan nama film di sumbu X dan popularitas di sumbu Y
 plt.figure(figsize=(12,6))
@@ -227,9 +282,12 @@ def extract_names(cast_json):
 
 credits_df['cast_names'] = credits_df['cast'].apply(extract_names)
 
+"""**Melihat apakah cast_names sudah ter create dan non null**"""
+
 credits_df.info()
 
-# Fungsi untuk mengubah JSON string menjadi list of dictionaries
+"""**Fungsi convert_genres digunakan untuk mengubah fitur genre JSON string menjadi dictionaries**"""
+
 def convert_genres(json_str):
     try:
         # Parsing string JSON menjadi list of dictionaries
@@ -252,35 +310,7 @@ movies_df['genre_names'] = movies_df['genres_list'].apply(extract_genre_names)
 # Menampilkan hasil akhir
 movies_df[['title', 'genre_names', 'genres_list']].head()
 
-movies_df['overview'].head()
-
-# Cek tipe data setiap elemen di kolom 'overview'
-overview_types = movies_df['overview'].apply(type)
-print(overview_types.value_counts())
-
-# Mengganti nilai yang bertipe 'object' dengan string kosong
-movies_df['overview'] = movies_df['overview'].apply(lambda x: x if isinstance(x, str) else '')
-
-# Verifikasi tipe data setelah perubahan
-overview_types = movies_df['overview'].apply(type)
-overview_types.value_counts()
-
-# Fungsi untuk membersihkan teks
-def clean_text(text):
-    if isinstance(text, str):
-        # Mengubah teks menjadi huruf kecil
-        text = text.lower()
-        # Menghapus angka dan karakter khusus
-        text = re.sub(r'[^a-z\s]', '', text)
-    return text
-
-# Terapkan fungsi bersih pada kolom overview
-movies_df['cleaned_overview'] = movies_df['overview'].apply(clean_text)
-
-# Menghapus baris dengan cleaned_overview kosong
-movies_df = movies_df[movies_df['cleaned_overview'].str.strip() != '']
-
-movies_df['cleaned_overview'].head()
+"""**Mengekstrak fitur cast dan merged dataset movies dan credits**"""
 
 # Misalkan credits_df dan movies_df adalah DataFrame yang sudah Anda buat
 
@@ -306,14 +336,19 @@ print("Kolom di merged_df:", merged_df.columns)
 final_df = merged_df[['id', 'title', 'keywords', 'budget', 'genre_names',
                        'cleaned_overview', 'popularity',
                        'production_companies_full',
+def extract_director(crew):
                        'production_countries_full', 'revenue',
                        'status', 'vote_average', 'vote_count',
                        'crew', 'cast_names']]
+
+"""**Menampilkan dataset yang sudah di merged**"""
 
 final_df[['title', 'genre_names', 'cleaned_overview', 'popularity',
                  'production_companies_full', 'production_countries_full',
                  'revenue', 'status', 'vote_average', 'vote_count',
                  ]].head()
+
+"""**Menampilkan informasi dari dataset gabungan credit dan movie**"""
 
 final_df.info()
 
@@ -336,7 +371,8 @@ final_df.loc[:, 'director'] = final_df['crew'].apply(extract_director)
 # Lihat 5 baris pertama untuk memastikan data director telah diekstrak dengan benar
 final_df.head()
 
-# Menghapus duplikat berdasarkan kolom 'title'
+"""**Menghapus duplikat berdasarkan kolom 'title'**"""
+
 final_df = final_df.drop_duplicates(subset='title', keep='first').reset_index(drop=True)
 
 # Menampilkan DataFrame setelah menghapus duplikat
@@ -372,9 +408,7 @@ def recommend_movies(title, cosine_sim=cosine_sim):
 recommended_movies = recommend_movies('The Dark Knight Rises')
 recommended_movies
 
-"""**Menampilkan tf-idf**"""
-
-# Asumsi final_df sudah ada dan memiliki kolom 'cleaned_overview'
+"""**Menampilkan tf-idf beserta langkah-langkah**"""
 
 # 1. Menggunakan TF-IDF Vectorizer pada cleaned_overview
 final_df['cleaned_overview'] = final_df['cleaned_overview'].fillna('')  # Mengisi NaN dengan string kosong
@@ -516,12 +550,7 @@ def recommend_movies_by_cast(cast_name, cosine_sim=cosine_sim_cast):
 recommended_movies_cast = recommend_movies_by_cast('Christian Bale')
 print(recommended_movies_cast)
 
-# Membuat dataframe dari variabel cosine_sim dengan baris dan kolom berupa nama film
-cosine_sim_df = pd.DataFrame(cosine_sim, index=final_df['title'], columns=final_df['title'])
-print('Shape:', cosine_sim_df.shape)
-
-# Melihat similarity matrix pada setiap resto
-cosine_sim_df.sample(15, axis=1).sample(15, axis=0)
+"""**Menggabungkan hasil dari credit dan movies dengan ratings**"""
 
 # Gabungkan hasil gabungan dengan ratings_df
 final_df = pd.merge(ratings_small_df, final_df, left_on='movieId', right_on='id', how='left')

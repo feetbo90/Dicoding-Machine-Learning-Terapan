@@ -30,23 +30,18 @@ Berdasarkan latar belakang di atas, berikut ini batasan masalah yang dapat disel
 
 - Mengimplementasikan algoritma rekomendasi untuk menghasilkan rekomendasi film.
 
-- Mengetahui cara membuat model deep learning untuk rekomendasi film kepada user.
-
-
-Pengembangan model rekomendasi akan dilakukan dengan menggunakan berbagai teknik, seperti TF-IDF untuk analisis teks dan algoritma SVD untuk menangani data sparse. SVD (Singular Value Decomposition) dipilih karena kemampuannya dalam mereduksi dimensi data dan meningkatkan kinerja rekomendasi dengan mempertimbangkan interaksi pengguna dan item secara lebih efektif.
-
-Dengan menggunakan teknik ini, sistem rekomendasi yang dihasilkan diharapkan mampu memberikan rekomendasi yang lebih akurat dan relevan bagi pengguna, sehingga meningkatkan kepuasan dan loyalitas mereka terhadap platform film yang digunakan.
+- Membuat model deep learning untuk rekomendasi film kepada user.
 
 
 ### Solution Statements
 
 Solusi yang dapat dilakukan untuk mencapai tujuan sistem rekomendasi film adalah sebagai berikut:
 
-- Mengimplementasikan model **Content-Based Filtering** menggunakan teknik **TF-IDF** untuk menganalisis teks deskripsi film dan informasi terkait, seperti genre, sutradara, dan aktor, guna menghasilkan rekomendasi yang sesuai dengan preferensi pengguna.
+- Mengimplementasikan model **Content-Based Filtering** menggunakan teknik **Cosine Similarities** untuk menganalisis teks deskripsi film dan informasi terkait, seperti genre, sutradara, dan aktor, guna menghasilkan rekomendasi yang sesuai dengan preferensi pengguna.
   
 - Menggunakan algoritma **Singular Value Decomposition (SVD)** sebagai bagian dari **Collaborative Filtering** untuk memperhitungkan hubungan antara pengguna dan film berdasarkan riwayat rating yang tersedia, serta memprediksi rating film yang belum ditonton oleh pengguna.
 
-- Mengukur performa model menggunakan metrik seperti **RMSE (Root Mean Squared Error)** dan **Precision-Recall**, serta membandingkan model untuk menemukan model yang memberikan akurasi prediksi tertinggi pada data uji.
+- Mengukur performa model menggunakan metrik seperti **RMSE (Root Mean Squared Error)** dan **Precision**, serta membandingkan model untuk menemukan model yang memberikan akurasi prediksi tertinggi pada data uji.
 
 ## Data Understanding
 Dataset yang digunakan dapat diakses menggunakan [Huggingface Dataset](https://huggingface.co/datasets/mhdiqbalpradipta/movie).
@@ -188,11 +183,56 @@ Tabel 4: informasi dari dataset movies_df
 - **Jumlah Non-Null:** Kolom ini menunjukkan berapa banyak data yang memiliki nilai valid (tidak kosong).
 - **Tipe Data:** Kolom ini menunjukkan tipe data dari setiap variabel (misalnya, int64 untuk angka bulat, object untuk teks).
 
+```python
+null_values_movies = movies_df.isnull().sum()
+null_values_movies
+```
+
+Pada tabel berikut, kita dapat melihat jumlah missing values (nilai yang hilang) di setiap kolom dari dataset:
+
+Tabel 5: Check fitur yang null
+
+
+| Column                | Missing Values |
+|-----------------------|----------------|
+| budget                | 0              |
+| genres                | 0              |
+| homepage              | 3091           |
+| id                    | 0              |
+| keywords              | 0              |
+| original_language     | 0              |
+| original_title        | 0              |
+| overview              | 3              |
+| popularity            | 0              |
+| production_companies  | 0              |
+| production_countries  | 0              |
+| release_date          | 1              |
+| revenue               | 0              |
+| runtime               | 2              |
+| spoken_languages      | 0              |
+| status                | 0              |
+| tagline               | 844            |
+| title                 | 0              |
+| vote_average          | 0              |
+| vote_count            | 0              |
+
+
+1. **Homepage**: Kolom **homepage** memiliki 3091 nilai yang hilang. Ini mungkin disebabkan karena tidak semua film memiliki homepage atau website resmi. Nilai yang hilang dapat dibiarkan sebagai NaN karena tidak terlalu mempengaruhi proses rekomendasi.
+
+2. **Overview**: Kolom **overview** memiliki 3 nilai yang hilang. Nilai ini penting untuk analisis berbasis konten, jadi entri dengan missing values ini dapat dihapus atau diisi dengan deskripsi singkat.
+
+3. **Release Date**: Kolom **release_date** memiliki 1 nilai yang hilang. Nilai ini dapat diimputasi menggunakan tanggal rilis lain yang relevan jika mungkin, atau entri tersebut dapat dihapus.
+
+4. **Runtime**: Kolom **runtime** memiliki 2 nilai yang hilang. Waktu tayang film adalah salah satu fitur penting dalam analisis film, jadi nilai yang hilang ini bisa diimputasi dengan nilai rata-rata atau median.
+
+5. **Tagline**: Kolom **tagline** memiliki 844 nilai yang hilang. Karena tagline tidak selalu tersedia untuk setiap film, nilai yang hilang ini bisa dibiarkan atau diisi dengan string placeholder seperti "No Tagline Available".
+
+
 ### Ringkasan Dataset Credits
 
 Dataset ini berisi informasi mengenai pemain (cast) dan kru (crew) dari 4803 film. Setiap film diwakili oleh empat kolom utama, yaitu `movie_id`, `title`, `cast`, dan `crew`. Berikut adalah penjelasan dari setiap kolom:
 
-Tabel 5: informasi dari dataset credits
+Tabel 6: informasi dari dataset credits
 
 
 | **Kolom**   | **Jumlah Non-Null** | **Tipe Data** | **Deskripsi** |
@@ -215,7 +255,7 @@ Dataset ini sangat berguna dalam analisis terkait peran aktor dan kru dalam film
 Dataset ini berisi informasi tentang rating film yang diberikan oleh pengguna. Dataset terdiri dari empat kolom utama: `userId`, `movieId`, `rating`, dan `timestamp`. Berikut adalah penjelasan untuk masing-masing kolom:
 
 
-Tabel 6: informasi dari dataset ratings
+Tabel 7: informasi dari dataset ratings
 
 | **Kolom**    | **Jumlah Non-Null** | **Tipe Data** | **Deskripsi** |
 |--------------|---------------------|---------------|---------------|
@@ -269,50 +309,6 @@ Di bagian ini, akan menjelaskan secara detail mengenai proses pembersihan data (
 
 ### a. Mengisi nilai yang null
 
-```python
-null_values_movies = movies_df.isnull().sum()
-null_values_movies
-```
-
-Pada tabel berikut, kita dapat melihat jumlah missing values (nilai yang hilang) di setiap kolom dari dataset:
-
-Tabel 7: Check fitur yang null
-
-
-| Column                | Missing Values |
-|-----------------------|----------------|
-| budget                | 0              |
-| genres                | 0              |
-| homepage              | 3091           |
-| id                    | 0              |
-| keywords              | 0              |
-| original_language     | 0              |
-| original_title        | 0              |
-| overview              | 3              |
-| popularity            | 0              |
-| production_companies  | 0              |
-| production_countries  | 0              |
-| release_date          | 1              |
-| revenue               | 0              |
-| runtime               | 2              |
-| spoken_languages      | 0              |
-| status                | 0              |
-| tagline               | 844            |
-| title                 | 0              |
-| vote_average          | 0              |
-| vote_count            | 0              |
-
-
-1. **Homepage**: Kolom **homepage** memiliki 3091 nilai yang hilang. Ini mungkin disebabkan karena tidak semua film memiliki homepage atau website resmi. Nilai yang hilang dapat dibiarkan sebagai NaN karena tidak terlalu mempengaruhi proses rekomendasi.
-
-2. **Overview**: Kolom **overview** memiliki 3 nilai yang hilang. Nilai ini penting untuk analisis berbasis konten, jadi entri dengan missing values ini dapat dihapus atau diisi dengan deskripsi singkat.
-
-3. **Release Date**: Kolom **release_date** memiliki 1 nilai yang hilang. Nilai ini dapat diimputasi menggunakan tanggal rilis lain yang relevan jika mungkin, atau entri tersebut dapat dihapus.
-
-4. **Runtime**: Kolom **runtime** memiliki 2 nilai yang hilang. Waktu tayang film adalah salah satu fitur penting dalam analisis film, jadi nilai yang hilang ini bisa diimputasi dengan nilai rata-rata atau median.
-
-5. **Tagline**: Kolom **tagline** memiliki 844 nilai yang hilang. Karena tagline tidak selalu tersedia untuk setiap film, nilai yang hilang ini bisa dibiarkan atau diisi dengan string placeholder seperti "No Tagline Available".
-
 **Mengisi nilai null fitur runtime dengan mean**
 
 ```python
@@ -331,36 +327,11 @@ movies_df['release_date'] = movies_df['release_date'].fillna(object())
 
 Untuk dataset credit dan rating tidak ada fitur yang bernilai null
 
-### b. Menambah Kolom yang berupa json kedalam list 
-
-Berikut fungsi untuk mengubah fitur menjadi fitur baru yang berupa list
+### b. Mengganti nilai yang bertipe 'object' dengan string kosong
 
 ```python
-def extract_production_countries(countries):
-
-def extract_production_companies(companies):
-
-def extract_names(cast_json):
-
-def convert_genres(json_str):
-
-def extract_director(crew):
+movies_df['overview'] = movies_df['overview'].apply(lambda x: x if isinstance(x, str) else '')
 ```
-
-Tabel 8: Contoh tabel saat mengubah json menjadi list
-
-| Title                                       | Production Companies Full                                                    |
-|---------------------------------------------|------------------------------------------------------------------------------|
-| Avatar                                      | Ingenious Film Partners, Twentieth Century Fox                               |
-| Pirates of the Caribbean: At World's End    | Walt Disney Pictures, Jerry Bruckheimer Films                                |
-| Spectre                                     | Columbia Pictures, Danjaq, B24                                               |
-| The Dark Knight Rises                       | Legendary Pictures, Warner Bros., DC Entertainment                           |
-| John Carter                                 | Walt Disney Pictures                                                         |
-| Spider-Man 3                                | Columbia Pictures, Laura Ziskin Productions, Marvel Enterprises              |
-| Tangled                                     | Walt Disney Pictures, Walt Disney Animation Studios                          |
-| Avengers: Age of Ultron                     | Marvel Studios, Prime Focus, Revolution Sun Studios                          |
-| Harry Potter and the Half-Blood Prince      | Warner Bros., Heyday Films                                                   |
-| Batman v Superman: Dawn of Justice          | DC Comics, Atlas Entertainment, Warner Bros., Cruel and Unusual Films       |
 
 ### c.  Membersihkan Teks fitur overview (clean_text)
 
@@ -386,24 +357,64 @@ Langkah-Langkah:
 - Mengubah ke Huruf Kecil: Seluruh teks diubah menjadi huruf kecil. Ini membantu dalam menyamakan format dan menghindari masalah saat mencocokkan kata-kata (misalnya, "Film" dan "film" dianggap berbeda tanpa konversi ini).
 - Menghapus Angka dan Karakter Khusus: Menggunakan regex (re.sub), semua karakter yang bukan huruf atau spasi dihapus. Ini membersihkan teks dari elemen yang tidak perlu, seperti angka, tanda baca, atau karakter khusus yang tidak relevan untuk analisis selanjutnya.
 
-### d. Menggabungkan kedua dataset yaitu movies dengan credits dan ratings
+### d. Menambah Kolom yang berupa json kedalam list 
+
+Berikut fungsi untuk mengubah fitur menjadi fitur baru yang berupa list
+
+```python
+def extract_production_countries(countries):
+
+def extract_production_companies(companies):
+
+def extract_names(cast_json):
+
+def convert_genres(json_str):
+
+def extract_cast_names(cast):
+
+```
+
+Tabel 8: Contoh tabel saat mengubah json menjadi list
+
+| Title                                       | Production Companies Full                                                    |
+|---------------------------------------------|------------------------------------------------------------------------------|
+| Avatar                                      | Ingenious Film Partners, Twentieth Century Fox                               |
+| Pirates of the Caribbean: At World's End    | Walt Disney Pictures, Jerry Bruckheimer Films                                |
+| Spectre                                     | Columbia Pictures, Danjaq, B24                                               |
+| The Dark Knight Rises                       | Legendary Pictures, Warner Bros., DC Entertainment                           |
+| John Carter                                 | Walt Disney Pictures                                                         |
+| Spider-Man 3                                | Columbia Pictures, Laura Ziskin Productions, Marvel Enterprises              |
+| Tangled                                     | Walt Disney Pictures, Walt Disney Animation Studios                          |
+| Avengers: Age of Ultron                     | Marvel Studios, Prime Focus, Revolution Sun Studios                          |
+| Harry Potter and the Half-Blood Prince      | Warner Bros., Heyday Films                                                   |
+| Batman v Superman: Dawn of Justice          | DC Comics, Atlas Entertainment, Warner Bros., Cruel and Unusual Films       |
+
+
+### e. Menggabungkan dataset movies dan credits
 
 ```python
 # Gabungkan credits_df dan movies_df berdasarkan movie_id dan id
 merged_df = pd.merge(movies_df, credits_df[['movie_id', 'crew', 'cast_names']],
                      left_on='id', right_on='movie_id', how='left')
+```
 
-# Tampilkan kolom yang ada di merged_df untuk debugging
-print("Kolom di merged_df:", merged_df.columns)
+### f. Menambah Kolom crew yang berupa json ke dalam list
 
-# Pilih kolom yang relevan dari merged_df
-final_df = merged_df[['id', 'title', 'keywords', 'budget', 'genre_names',
-                       'cleaned_overview', 'popularity',
-                       'production_companies_full',
-                       'production_countries_full', 'revenue',
-                       'status', 'vote_average', 'vote_count',
-                       'crew', 'cast_names']]
+Berikut fungsi untuk mengubah fitur menjadi fitur baru yang berupa list
 
+```python
+def extract_director(crew):
+```
+
+### g. Menghapus duplikat berdasarkan kolom 'title'
+
+```python
+final_df = final_df.drop_duplicates(subset='title', keep='first').reset_index(drop=True)
+```
+
+### h. Menggabungkan hasil dari credit dan movies dengan ratings
+
+```python
 # Gabungkan hasil gabungan dengan ratings_df
 final_df = pd.merge(ratings_small_df, final_df, left_on='movieId', right_on='id', how='left')
 
@@ -411,12 +422,14 @@ final_df = pd.merge(ratings_small_df, final_df, left_on='movieId', right_on='id'
 final_df = final_df[['userId', 'movieId', 'rating', 'title', 'genre_names', 'cast_names']]
 ```
 
-
-### e. Menghapus duplicate berdasarkan kolom 'title' 
+### i.  Menggunakan TF-IDF Vectorizer pada cleaned_overview, director, dan cast_names
 
 ```python
-final_df = final_df.drop_duplicates(subset='title', keep='first').reset_index(drop=True)
+tfidf_matrix = tfidf_vectorizer.fit_transform(final_df['cleaned_overview'])
+tfidf_director_matrix = tfidf_director.fit_transform(final_df['director'])
+tfidf_cast_matrix = tfidf_cast.fit_transform(final_df['cast_names'])
 ```
+
 
 ## Modeling
 
@@ -425,29 +438,6 @@ Pada tahap ini, akan membangun sistem rekomendasi berdasarkan fitur overview.
 ## a. TF-IDF (Term Frequency-Inverse Document Frequency)
 
 TF-IDF adalah ukuran statistik yang digunakan untuk mengevaluasi pentingnya suatu kata dalam dokumen relatif terhadap kumpulan dokumen. Teknik ini banyak digunakan dalam penambangan teks dan pemrosesan bahasa alami (NLP) untuk mengubah data teks menjadi vektor numerik, sehingga dapat digunakan oleh algoritma machine learning.
-
-### Komponen TF-IDF
-
-1. **Term Frequency (TF)**:
-   - TF mengukur seberapa sering suatu istilah muncul dalam sebuah dokumen. Ini dihitung sebagai berikut:
-   $$
-   TF(t, d) = \frac{\text{Jumlah kemunculan kata } t \text{ dalam dokumen } d}{\text{Total kata dalam dokumen } d}
-   $$
-   - Nilai TF yang lebih tinggi menunjukkan bahwa istilah tersebut lebih signifikan dalam dokumen tersebut.
-
-2. **Inverse Document Frequency (IDF)**:
-   - IDF mengukur pentingnya suatu istilah di seluruh kumpulan dokumen. Ini dihitung sebagai berikut:
-   $$
-   IDF(t) = \log\left(\frac{\text{Total jumlah dokumen}}{\text{Jumlah dokumen yang mengandung kata } t}\right)
-   $$
-   - Kata-kata yang muncul sering di banyak dokumen dianggap kurang penting, sementara kata-kata yang muncul dalam lebih sedikit dokumen mendapatkan bobot yang lebih tinggi.
-
-3. **TF-IDF**:
-   - Nilai TF-IDF adalah hasil dari perkalian TF dan IDF:
-   $$
-   TF\text{-}IDF(t, d) = TF(t, d) \times IDF(t)
-   $$
-   - Istilah yang umum dalam dokumen tertentu tetapi jarang muncul di seluruh kumpulan dokumen akan memiliki skor TF-IDF yang tinggi, sehingga lebih berharga untuk memahami isi dokumen tersebut. Sebaliknya, kata-kata umum di semua dokumen akan memiliki skor yang lebih rendah.
 
 Perumusan ini membantu mengidentifikasi kata-kata signifikan dalam sebuah dokumen, meningkatkan tugas analisis teks seperti pengambilan informasi, klasifikasi dokumen, dan pengelompokan.
 
@@ -481,30 +471,6 @@ Cosine Similarity adalah metrik yang digunakan untuk mengukur kesamaan antara du
 
 Cosine Similarity didefinisikan sebagai kosinus sudut antara dua vektor yang dinyatakan dalam rumus berikut:
 
-$$
-\text{Cosine Similarity} = \frac{A \cdot B}{||A|| \cdot ||B||}
-$$
-
-Di mana:
-- \(A\) dan \(B\) adalah dua vektor.
-- \(A \cdot B\) adalah hasil kali dot dari dua vektor.
-- \(||A||\) adalah norma (panjang) dari vektor \(A\).
-- \(||B||\) adalah norma (panjang) dari vektor \(B\).
-
-### Interpretasi
-
-- **Nilai 1**: Dua vektor identik dan sepenuhnya sejalan (sudut 0 derajat).
-- **Nilai 0**: Dua vektor tidak memiliki kesamaan (sudut 90 derajat).
-- **Nilai -1**: Dua vektor berlawanan arah (sudut 180 derajat).
-
-### Penggunaan
-
-Cosine Similarity sering digunakan dalam berbagai aplikasi, antara lain:
-
-1. **Rekomendasi Konten**: Untuk menemukan konten atau item yang mirip berdasarkan fitur yang ada.
-2. **Klasifikasi Teks**: Dalam klasifikasi dokumen untuk mengukur kesamaan antar dokumen.
-3. **Pencarian Informasi**: Untuk menemukan dokumen yang paling relevan berdasarkan kueri pengguna.
-
 ### Keuntungan
 
 - **Skala Tidak Berpengaruh**: Cosine Similarity tidak terpengaruh oleh magnitudo atau panjang vektor. Ini berarti dua dokumen yang panjangnya berbeda tetapi memiliki konten yang sama akan menghasilkan nilai kesamaan yang sama.
@@ -515,6 +481,9 @@ Cosine Similarity sering digunakan dalam berbagai aplikasi, antara lain:
 Kekurangan dari cosine similarity pada tabel di atas adalah sebagai berikut:
 
 Tidak Mempertimbangkan Skala Fitur: Cosine similarity hanya memperhitungkan sudut antara dua vektor, bukan magnitude atau panjang vektornya. Ini berarti dua film yang sangat mirip tetapi memiliki skala berbeda (misalnya, satu film memiliki lebih banyak atribut atau detail) tetap bisa memiliki cosine similarity yang tinggi, meskipun jumlah informasi yang dimiliki bisa sangat berbeda.
+
+
+### Rekomendasi Film berdasarkan fitur cleaned_overview
 
 Tabel 10: Cosine Similarity berdasarkan fitur cleaned_overview 
 
@@ -539,6 +508,48 @@ Penjelasan tabel:
 - Dark City dan The Black Hole memiliki kemiripan yang lebih rendah, sekitar 0.46-0.49.
 - Pan, From Hell, dan Coach Carter memiliki nilai cosine similarity di bawah 0.46, yang berarti meskipun masih ada kemiripan, itu tidak sebesar film di posisi atas.
 
+### Rekomendasi Film berdasarkan nama director
+
+Tabel 11: Film-film yang disutradarai oleh Christopher Nolan beserta nilai cosine similarity
+
+| Title                  | Cosine Similarity |
+|------------------------|-------------------|
+| The Dark Knight         | 1.0               |
+| Interstellar            | 1.0               |
+| Inception               | 1.0               |
+| Batman Begins           | 1.0               |
+| Insomnia                | 1.0               |
+| The Prestige            | 1.0               |
+| Memento                 | 1.0               |
+| The Dark Knight Rises   | 1.0               |
+| The Dark Knight         | 1.0               |
+| Interstellar            | 1.0               |
+
+Tabel berikut menunjukkan film-film yang disutradarai oleh Christopher Nolan beserta nilai cosine similarity-nya. Cosine similarity mengukur kemiripan antara item berdasarkan fitur yang dianalisis, dengan nilai 1.0 berarti film-film ini dianggap identik dalam hal fitur yang digunakan untuk penghitungan similarity, seperti nama sutradara.
+
+Berikut adalah penjelasan dari tabel:
+- Semua film di tabel ini memiliki nilai cosine similarity sebesar 1.0, yang menunjukkan bahwa mereka identik dalam hal parameter yang dihitung dalam model ini (yaitu sutradara Christopher Nolan).
+- Karena semua film ini memiliki Christopher Nolan sebagai sutradara, model menganggap film-film ini sangat mirip berdasarkan fitur tersebut.
+
+### Rekomendasi Film berdasarkan nama aktor
+
+Tabel 12: Film-film yang dibintangi salah satu aktor yaitu Christian Bale beserta nilai cosine similarity
+
+| Title                   | Cosine Similarity |
+|-------------------------|-------------------|
+| The Big Short            | 1.0               |
+| Out of the Furnace       | 1.0               |
+| Public Enemies           | 1.0               |
+| The Fighter              | 1.0               |
+| Rescue Dawn              | 1.0               |
+| The Dark Knight Rises    | 1.0               |
+| The Dark Knight          | 1.0               |
+| Pocahontas               | 1.0               |
+| 3:10 to Yuma             | 1.0               |
+| Equilibrium              | 1.0               |
+
+Tabel berikut menunjukkan film-film yang dibintangi oleh Christian Bale beserta nilai cosine similarity-nya. Cosine similarity mengukur kemiripan antara item berdasarkan fitur yang dianalisis, dengan nilai 1.0 berarti film-film ini dianggap identik dalam hal fitur yang digunakan untuk penghitungan similarity, seperti nama aktor.
+
 ## c. Singular Value Decomposition (SVD)
 
 ### Pendahuluan
@@ -546,40 +557,6 @@ Penjelasan tabel:
 Singular Value Decomposition (SVD) adalah teknik matriks dekomposisi yang sering digunakan dalam bidang aljabar linear, machine learning, dan rekomendasi sistem. SVD adalah dekomposisi matriks yang memecah suatu matriks menjadi tiga matriks lain yang lebih sederhana untuk dianalisis. 
 
 Dalam konteks sistem rekomendasi, SVD sering digunakan dalam model berbasis faktor untuk dekomposisi matriks pengguna-item, di mana pengguna dan item dimodelkan dalam bentuk faktor-faktor yang dapat membantu mengungkap pola laten antara pengguna dan item yang direkomendasikan.
-
-### Rumus Matematika
-
-Jika kita memiliki suatu matriks \( A \) dengan ukuran \( m \times n \), maka dekomposisi SVD adalah sebagai berikut:
-
-$$
-A = U \Sigma V^T
-$$
-
-Di mana:
-- \( A \) adalah matriks asli \( m \times n \).
-- \( U \) adalah matriks ortogonal \( m \times m \) yang terdiri dari *left singular vectors*.
-- \( \Sigma \) adalah matriks diagonal \( m \times n \) yang berisi *singular values*.
-- \( V^T \) adalah matriks ortogonal \( n \times n \) yang terdiri dari *right singular vectors*.
-
-### Komponen-komponen:
-- **Matriks \( U \)**: berisi *left singular vectors* yang menggambarkan hubungan antara baris-baris dalam matriks \( A \).
-- **Matriks \( \Sigma \)**: diagonal dan berisi *singular values*, yaitu bobot yang menjelaskan seberapa penting setiap faktor laten.
-- **Matriks \( V^T \)**: berisi *right singular vectors* yang menggambarkan hubungan antara kolom-kolom dalam matriks \( A \).
-
-### Proses Dekomposisi
-
-- Matriks \( U \) dan \( V \) adalah matriks ortogonal, yang berarti vektor-vektonya saling tegak lurus.
-- Matriks \( \Sigma \) hanya berisi nilai-nilai singular pada diagonal utamanya, di mana nilai-nilai ini menentukan jumlah informasi yang dimiliki oleh setiap faktor laten.
-
-### Penggunaan dalam Sistem Rekomendasi
-
-SVD sering digunakan dalam **collaborative filtering** untuk membangun sistem rekomendasi berbasis matriks pengguna-item. Sistem ini bekerja dengan melakukan dekomposisi pada matriks interaksi pengguna dan item, lalu merekonstruksi matriks tersebut dengan menekan faktor laten yang tidak signifikan.
-
-### Langkah-langkah:
-1. **Input Matriks**: Matriks pengguna-item, di mana baris-barisnya adalah pengguna dan kolom-kolomnya adalah item yang dinilai.
-2. **Dekomposisi SVD**: Matriks pengguna-item diuraikan menjadi tiga komponen: \( U \), \( \Sigma \), dan \( V^T \).
-3. **Pembentukan Prediksi**: Setelah melakukan dekomposisi, kita dapat memprediksi rating pengguna terhadap item yang belum dinilai dengan merekonstruksi matriks dari faktor-faktor utama saja.
-4. **Rekomendasi**: Sistem merekomendasikan item kepada pengguna berdasarkan prediksi nilai tertinggi dari matriks yang direkonstruksi.
 
 ```python
 ratings_for_svd = final_df[['userId', 'movieId', 'rating']]
@@ -624,9 +601,18 @@ svd_model.fit(trainset)
 ```
 Model dilatih menggunakan train set. Setelah pelatihan, model dapat digunakan untuk memprediksi rating yang belum diberikan oleh pengguna.
 
+### Rekomendasi film berdasarkan user id
+
+Di dalam fungsi get_movie_recommendations digunakan untuk menampilkan film yang akan menjadi rekomendasi user_id dengan id 3 dan hasilnya menampilkan 3 film yaitu:
+
+
+```python
+['Beetlejuice', 'Galaxy Quest', 'The Good Thief']
+```
+
 ## Evaluasi
 
-**Content-Based Filtering**
+### Content-Based Filtering
 
 Pada tahap ini akan digunakan Precision untuk mengevaluasi hasil dari rekomendasi pada tabel 8. Precision dapat didefinisikan sebagai berikut:
 
@@ -637,6 +623,8 @@ $$ Precision = r / i $$
 - i= jumlah rekomendasi yang diberikan
 
 Untuk pendekatan content-based filtering, bisa dilihat untuk judul film The Dark Knight Rises merupakan film dengan genre [Action, Crime, Drama, Thriller] dari tabel bisa kita spesifikasikan yang masuk dalam kategori yang benar ada 7 sesuai dari kategori sedangkan film Pan, Dark City, Coyote Ugly tidak termasuk dari salah satu kategori. Artinya Precision sistem sebesar 7/10 atau 70%.
+
+Tabel 13: Genre dari beberapa film
 
 | Title          | Genre Names                                        |
 |----------------|----------------------------------------------------|
@@ -650,6 +638,41 @@ Untuk pendekatan content-based filtering, bisa dilihat untuk judul film The Dark
 | Pan            | [Adventure, Family, Fantasy]                       |
 | From Hell      | [Horror, Mystery, Thriller]                        |
 | Coach Carter   | [Drama]                                            |
+
+Untuk pendekatan yang kedua berdasarkan nama director coba dilihat tabel ini
+
+Tabel 14: Nama director dari beberapa film
+| Title                  | Director |
+|------------------------|-------------------|
+| The Dark Knight         | Christopher Nolan               |
+| Interstellar            | Christopher Nolan               |
+| Inception               | Christopher Nolan               |
+| Batman Begins           | Christopher Nolan               |
+| Insomnia                | Christopher Nolan               |
+| The Prestige            | Christopher Nolan               |
+| Memento                 | Christopher Nolan               |
+| The Dark Knight Rises   | Christopher Nolan               |
+
+Dari tabel bisa kita spesifikasikan yang masuk dalam kategori yang benar ada 8 sesuai dari kategori. Artinya Precision sistem sebesar 8/8 atau 100%.
+
+Begitu juga dengan rekomendasi berdasarkan nama aktor dari tabel di bawah
+
+Tabel 15: Nama actor dari beberapa film
+
+| Title                   | Actor |
+|-------------------------|-------------------|
+| The Big Short            | Christian Bale               |
+| Out of the Furnace       | Christian Bale               |
+| Public Enemies           | Christian Bale               |
+| The Fighter              | Christian Bale               |
+| Rescue Dawn              | Christian Bale               |
+| The Dark Knight Rises    | Christian Bale               |
+| The Dark Knight          | Christian Bale               |
+| Pocahontas               | Christian Bale               |
+| 3:10 to Yuma             | Christian Bale               |
+| Equilibrium              | Christian Bale               |
+
+Dari tabel bisa kita spesifikasikan yang masuk dalam kategori yang benar ada 10 sesuai dari kategori. Artinya Precision sistem sebesar 10/10 atau 100%.
 
 **Collaborative Filtering**
 
@@ -668,6 +691,12 @@ Contoh hasil dengan user_id=3 menghasilkan film yang bisa menjadi recomendasi
 ```
 
 Nilai RMSE sebesar 0.9007 menunjukkan bahwa model rekomendasi yang digunakan cukup akurat, dengan kesalahan rata-rata prediksi yang relatif kecil. Metrik ini membantu untuk mengevaluasi dan membandingkan kinerja model, serta memberikan wawasan tentang bagaimana model dapat ditingkatkan di masa depan.
+
+# Kesimpulan
+
+- Dari tabel 13, 14, dan 15 diterapkan pada fitur seperti overview yang kemudian menghasilkan rekomendasi berdasarkan kesamaan cosine similarity. dari tabel juga sudah menganalisis fitur-fitur tambahan seperti aktor dan sutradara, seperti pada kasus Christian Bale dan Christopher Nolan, yang menunjukkan kemiripan film-film berdasarkan aktor atau sutradara tertentu.
+- Dari metode SVD yang menganalisis dari dataset rating memprediksi rating film yang belum ditonton oleh pengguna berdasarkan riwayat rating yang ada, dimana dengan user_id = 3 mendapatkan rekomendasi film yang bisa ditonton yaitu Beetlejuice, Galaxy Quest, dan The Good Thief.
+- Model Content-Based Filtering menggunakan Cosine Similarity dievaluasi menggunakan precision (tabel 13, 14, 15) dan Collaborative Filtering menggunakan SVD telah berhasil diimplementasikan dan dievaluasi dengan RMSE.
 
 Referensi: 
 
