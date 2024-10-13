@@ -336,7 +336,6 @@ print("Kolom di merged_df:", merged_df.columns)
 final_df = merged_df[['id', 'title', 'keywords', 'budget', 'genre_names',
                        'cleaned_overview', 'popularity',
                        'production_companies_full',
-def extract_director(crew):
                        'production_countries_full', 'revenue',
                        'status', 'vote_average', 'vote_count',
                        'crew', 'cast_names']]
@@ -407,6 +406,15 @@ def recommend_movies(title, cosine_sim=cosine_sim):
 
 recommended_movies = recommend_movies('The Dark Knight Rises')
 recommended_movies
+
+"""**Mengidentifikasi kesamaan antara satu film dengan yang lain**"""
+
+# Membuat dataframe dari variabel cosine_sim dengan baris dan kolom berupa judul
+cosine_sim_df = pd.DataFrame(cosine_sim, index=final_df['title'], columns=final_df['title'])
+print('Shape:', cosine_sim_df.shape)
+
+# Melihat similarity matrix pada setiap judul
+cosine_sim_df.sample(5, axis=1).sample(20, axis=0)
 
 """**Menampilkan tf-idf beserta langkah-langkah**"""
 
@@ -501,6 +509,15 @@ def recommend_movies_by_director(director_name, cosine_sim=cosine_sim_director):
 recommended_movies_director = recommend_movies_by_director('Christopher Nolan')
 print(recommended_movies_director)
 
+"""**Mengidentifikasikan kesamaan nilai berdasarkan nama director**"""
+
+# Membuat dataframe dari variabel cosine_sim dengan baris dan kolom berupa judul
+cosine_sim_director = pd.DataFrame(cosine_sim, index=final_df['title'], columns=final_df['title'])
+print('Shape:', cosine_sim_df.shape)
+
+# Melihat similarity matrix pada setiap judul
+cosine_sim_director.sample(5, axis=1).sample(20, axis=0)
+
 """**Rekomendasi film berdasarkan nama aktor**"""
 
 # 1. Menyusun kembali nama aktor menjadi string jika cast_names adalah daftar
@@ -549,6 +566,15 @@ def recommend_movies_by_cast(cast_name, cosine_sim=cosine_sim_cast):
 # 5. Contoh penggunaan sistem rekomendasi berdasarkan aktor
 recommended_movies_cast = recommend_movies_by_cast('Christian Bale')
 print(recommended_movies_cast)
+
+"""**Mengidentifikasikan kesamaan nilai berdasarkan nama actor**"""
+
+# Membuat dataframe dari variabel cosine_sim dengan baris dan kolom berupa judul
+cosine_sim_cast = pd.DataFrame(cosine_sim, index=final_df['title'], columns=final_df['title'])
+print('Shape:', cosine_sim_df.shape)
+
+# Melihat similarity matrix pada setiap judul
+cosine_sim_cast.sample(5, axis=1).sample(20, axis=0)
 
 """**Menggabungkan hasil dari credit dan movies dengan ratings**"""
 

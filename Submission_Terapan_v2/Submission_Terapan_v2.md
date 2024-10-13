@@ -2,13 +2,13 @@
 
 ## Movie Recommendation System
 
-Sistem Rekomendasi adalah alat penyaring informasi yang bertujuan untuk menyaring informasi yang relevan dari sejumlah besar data, terutama di era big data saat ini. Sistem Rekomendasi Film adalah alat berbasis pembelajaran mesin yang secara otomatis menyaring film dari basis data besar seperti Netflix, Amazon, dan lainnya berdasarkan preferensi pengguna [1], dan biasanya sistem rekomendasi [2, 3] dirancang untuk membantu manusia mengatasi masalah kelebihan informasi. Ketika kita perlu memilih di antara banyak pilihan yang belum kita miliki pengalaman sebelumnya (misalnya, film, buku, dan layanan), kita sering mengandalkan rekomendasi dari orang lain yang telah memiliki pengalaman tersebut. Saat ada banyak sekali pilihan, seperti di internet, menjadi tugas yang hampir mustahil untuk menemukan seseorang yang ahli yang dapat memberikan saran yang tepat untuk membuat pilihan yang sesuai.
+Sistem Rekomendasi adalah alat penyaring informasi yang bertujuan untuk menyaring informasi yang relevan dari sejumlah besar data, terutama di era big data saat ini. Sistem Rekomendasi Film adalah alat berbasis pembelajaran mesin yang secara otomatis menyaring film dari basis data besar seperti Netflix, Amazon, dan lainnya berdasarkan preferensi pengguna [1], dan biasanya sistem rekomendasi dirancang untuk membantu manusia mengatasi masalah kelebihan informasi. Ketika kita perlu memilih di antara banyak pilihan yang belum kita miliki pengalaman sebelumnya (misalnya, film, buku, dan layanan), kita sering mengandalkan rekomendasi dari orang lain yang telah memiliki pengalaman tersebut. Saat ada banyak sekali pilihan, seperti di internet, menjadi tugas yang hampir mustahil untuk menemukan seseorang yang ahli yang dapat memberikan saran yang tepat untuk membuat pilihan yang sesuai [2]. 
 
 Saat ini, platform seperti Netflix, Amazon Prime, dan Disney+ memiliki ribuan film yang tersedia, membuat pengguna menghadapi masalah information overload, di mana terlalu banyak pilihan membuat sulit bagi mereka untuk menemukan film yang sesuai dengan preferensi pribadi mereka.
 
 Selain itu, preferensi pengguna sangat subjektif dan dinamis, sehingga menciptakan tantangan dalam menyediakan rekomendasi yang akurat dan relevan. Sistem rekomendasi film berbasis machine learning bertujuan untuk menyelesaikan masalah ini dengan menyaring dan mempersonalisasi konten berdasarkan data seperti riwayat tontonan, rating film, dan preferensi genre. Penelitian dalam bidang ini juga krusial karena kemampuan memberikan rekomendasi yang tepat akan meningkatkan kepuasan pengguna, memperpanjang waktu keterlibatan mereka pada platform, dan mendorong loyalitas pelanggan.
 
-Dengan adanya rekomendasi yang lebih baik, tidak hanya pengguna yang diuntungkan, tetapi juga industri perfilman, karena film-film yang mungkin tidak mendapatkan eksposur besar dapat lebih mudah ditemukan dan dinikmati oleh penonton yang tepat. Hal ini menunjukkan bahwa penelitian dalam sistem rekomendasi film memainkan peran penting dalam menciptakan pengalaman yang dipersonalisasi, memperbaiki pengambilan keputusan, dan meningkatkan aksesibilitas terhadap beragam konten film.
+Dengan adanya rekomendasi yang lebih baik, tidak hanya pengguna yang diuntungkan, tetapi juga industri perfilman, karena film-film yang mungkin tidak mendapatkan eksposur besar dapat lebih mudah ditemukan dan dinikmati oleh penonton yang tepat. Hal ini menunjukkan bahwa penelitian dalam sistem rekomendasi film memainkan peran penting dalam menciptakan pengalaman yang dipersonalisasi, memperbaiki pengambilan keputusan, dan meningkatkan aksesibilitas terhadap beragam konten film [3].
 
 ## Business Understanding
 
@@ -16,7 +16,7 @@ Proyek ini berfokus pada pengembangan sistem rekomendasi film yang bertujuan unt
 
 Bagian laporan ini mencakup:
 
-### Problem Statements
+### Problem Statement
 
 Berdasarkan latar belakang di atas, berikut ini batasan masalah yang dapat diselesaikan dengan proyek ini:
 
@@ -33,7 +33,7 @@ Berdasarkan latar belakang di atas, berikut ini batasan masalah yang dapat disel
 - Membuat model deep learning untuk rekomendasi film kepada user.
 
 
-### Solution Statements
+### Solution Statement
 
 Solusi yang dapat dilakukan untuk mencapai tujuan sistem rekomendasi film adalah sebagai berikut:
 
@@ -309,6 +309,14 @@ Di bagian ini, akan menjelaskan secara detail mengenai proses pembersihan data (
 
 ### a. Mengisi nilai yang null
 
+**Kegunaan Mengisi Nilai Null**
+
+- Meningkatkan Kualitas Data: Nilai null dalam dataset dapat menyebabkan berbagai masalah, seperti kesalahan dalam perhitungan statistik, kesalahan saat model pelatihan, atau kesulitan dalam analisis data. Dengan mengisi nilai null, kita meningkatkan integritas dan kualitas data.
+
+- Memastikan Model Berfungsi: Banyak algoritma pembelajaran mesin tidak dapat menangani nilai null. Mengisi nilai null memungkinkan model untuk berfungsi tanpa error dan menghasilkan prediksi yang lebih akurat.
+
+- Mempermudah Analisis Data: Ketika data bersih dan lengkap, analisis yang dilakukan menjadi lebih akurat dan informatif. Ini penting saat melakukan analisis eksplorasi untuk mendapatkan wawasan dari dataset.
+
 **Mengisi nilai null fitur runtime dengan mean**
 
 ```python
@@ -332,6 +340,17 @@ Untuk dataset credit dan rating tidak ada fitur yang bernilai null
 ```python
 movies_df['overview'] = movies_df['overview'].apply(lambda x: x if isinstance(x, str) else '')
 ```
+
+**Kegunaan:**
+- Menghindari Error saat Pemrosesan Data:
+
+Dalam pemrosesan teks, kolom seperti overview (ringkasan film) diharapkan berisi string, namun kadang data bisa mengandung tipe lain seperti None, NaN, atau tipe data yang tidak sesuai. Menggunakan fungsi apply() dengan logika untuk mengganti nilai yang bukan string dengan string kosong ('') memastikan bahwa semua nilai dalam kolom tersebut memiliki tipe data yang konsisten (string).
+
+Ini membantu menghindari error yang dapat muncul jika kolom mengandung nilai yang bukan string selama proses analisis atau transformasi data, seperti saat menggunakan teknik TF-IDF atau analisis berbasis teks lainnya.
+
+- Memudahkan Pengolahan Teks:
+
+Mengubah nilai yang bukan string menjadi string kosong mempermudah saat melakukan operasi pemrosesan teks (text processing), seperti tokenisasi, pembuatan vektor TF-IDF, atau analisis teks lainnya. Semua nilai di kolom menjadi bersih dan siap untuk diproses lebih lanjut tanpa harus melakukan pengecekan tipe data setiap saat.
 
 ### c.  Membersihkan Teks fitur overview (clean_text)
 
@@ -357,6 +376,15 @@ Langkah-Langkah:
 - Mengubah ke Huruf Kecil: Seluruh teks diubah menjadi huruf kecil. Ini membantu dalam menyamakan format dan menghindari masalah saat mencocokkan kata-kata (misalnya, "Film" dan "film" dianggap berbeda tanpa konversi ini).
 - Menghapus Angka dan Karakter Khusus: Menggunakan regex (re.sub), semua karakter yang bukan huruf atau spasi dihapus. Ini membersihkan teks dari elemen yang tidak perlu, seperti angka, tanda baca, atau karakter khusus yang tidak relevan untuk analisis selanjutnya.
 
+Kegunaan:
+- Normalisasi Teks:
+
+Teks diubah menjadi huruf kecil (lowercase) agar tidak ada perbedaan antara huruf kapital dan huruf kecil. Hal ini penting dalam analisis teks, karena kata yang sama bisa ditulis dalam berbagai bentuk kapitalisasi, seperti "Film" dan "film". Normalisasi ini memastikan bahwa semua kata dianggap sama, terlepas dari kapitalisasi awal.
+
+- Menghapus Karakter yang Tidak Relevan:
+
+Dengan menggunakan regex (re.sub(r'[^a-z\s]', '', text)), fungsi ini menghapus angka dan karakter khusus yang tidak relevan untuk analisis teks. Angka dan simbol biasanya tidak memberikan informasi yang signifikan dalam analisis konten teks (seperti dalam analisis sentimen atau pembobotan TF-IDF), dan dengan menghapusnya, data menjadi lebih bersih dan fokus pada kata-kata penting.
+
 ### d. Menambah Kolom yang berupa json kedalam list 
 
 Berikut fungsi untuk mengubah fitur menjadi fitur baru yang berupa list
@@ -373,6 +401,8 @@ def convert_genres(json_str):
 def extract_cast_names(cast):
 
 ```
+Fungsi-fungsi ini sangat penting untuk membersihkan dan mempersiapkan data yang ada dalam format JSON string menjadi format list atau string yang lebih mudah untuk dianalisis dan dimodelkan. Ini juga membantu dalam membuat rekomendasi film berbasis content-based filtering dengan menggunakan atribut seperti genre, negara produksi, perusahaan, dan cast film.
+
 
 Tabel 8: Contoh tabel saat mengubah json menjadi list
 
@@ -398,6 +428,8 @@ merged_df = pd.merge(movies_df, credits_df[['movie_id', 'crew', 'cast_names']],
                      left_on='id', right_on='movie_id', how='left')
 ```
 
+Menggabungkan dataset movies dan credits menghasilkan dataset yang lebih kaya informasi, yang memudahkan untuk analisis lanjutan, pembuatan rekomendasi, dan pengambilan keputusan berbasis data. Ini adalah langkah penting dalam preprocessing data sebelum digunakan dalam model atau algoritma, seperti content-based filtering.
+
 ### f. Menambah Kolom crew yang berupa json ke dalam list
 
 Berikut fungsi untuk mengubah fitur menjadi fitur baru yang berupa list
@@ -405,12 +437,15 @@ Berikut fungsi untuk mengubah fitur menjadi fitur baru yang berupa list
 ```python
 def extract_director(crew):
 ```
+Fungsi ini sangat penting untuk membersihkan dan mempersiapkan data yang ada dalam format JSON string menjadi format list atau string yang lebih mudah untuk dianalisis dan dimodelkan. Ini juga membantu dalam membuat rekomendasi film berbasis content-based filtering dengan menggunakan atribut seperti director.
 
 ### g. Menghapus duplikat berdasarkan kolom 'title'
 
 ```python
 final_df = final_df.drop_duplicates(subset='title', keep='first').reset_index(drop=True)
 ```
+
+Menghapus duplikat berdasarkan kolom title memastikan dataset lebih bersih, efisien, dan konsisten untuk analisis dan pembuatan model. Hal ini membantu dalam meningkatkan performa model, keakuratan hasil, serta efisiensi komputasi.
 
 ### h. Menggabungkan hasil dari credit dan movies dengan ratings
 
@@ -421,6 +456,7 @@ final_df = pd.merge(ratings_small_df, final_df, left_on='movieId', right_on='id'
 # Pilih kolom yang relevan dari final_df untuk SVD
 final_df = final_df[['userId', 'movieId', 'rating', 'title', 'genre_names', 'cast_names']]
 ```
+Menggabungkan hasil dari movies, credits, dan ratings memastikan dataset yang lengkap untuk membangun model rekomendasi baik collaborative filtering maupun content-based filtering. Ini membantu mengintegrasikan preferensi pengguna dengan informasi mendetail tentang film, sehingga menghasilkan rekomendasi yang lebih akurat dan kontekstual.
 
 ### i.  Menggunakan TF-IDF Vectorizer pada cleaned_overview, director, dan cast_names
 
@@ -430,12 +466,9 @@ tfidf_director_matrix = tfidf_director.fit_transform(final_df['director'])
 tfidf_cast_matrix = tfidf_cast.fit_transform(final_df['cast_names'])
 ```
 
+Menggunakan TF-IDF pada teks deskripsi film, sutradara, dan nama pemeran memungkinkan model untuk content-based filtering berdasarkan konten film. Ini membantu sistem merekomendasikan film yang serupa berdasarkan fitur-fitur tersebut, memberikan hasil yang lebih relevan sesuai dengan preferensi pengguna.
 
-## Modeling
-
-Pada tahap ini, akan membangun sistem rekomendasi berdasarkan fitur overview.
-
-## a. TF-IDF (Term Frequency-Inverse Document Frequency)
+### TF-IDF (Term Frequency-Inverse Document Frequency)
 
 TF-IDF adalah ukuran statistik yang digunakan untuk mengevaluasi pentingnya suatu kata dalam dokumen relatif terhadap kumpulan dokumen. Teknik ini banyak digunakan dalam penambangan teks dan pemrosesan bahasa alami (NLP) untuk mengubah data teks menjadi vektor numerik, sehingga dapat digunakan oleh algoritma machine learning.
 
@@ -463,7 +496,23 @@ Tabel 9: kata-kata yang sering muncul dari fitur cleaned_overview
 - Sebaliknya, kata "new" memiliki nilai TF-IDF terendah di antara yang tercantum (0.007132). Ini menunjukkan bahwa kata ini mungkin lebih umum atau tidak memberikan makna yang signifikan dalam konteks yang lebih besar dari dokumen tersebut.
 
 
-## b. Cosine Similarity
+### j. Bagi Data ke dalam Train-Test Split
+
+```python 
+trainset, testset = train_test_split(data, test_size=0.25)
+```
+Data dibagi menjadi dua:
+Train set (75%): Untuk melatih model.
+Test set (25%): Untuk mengevaluasi model.
+test_size=0.25 berarti 25% dari data akan menjadi test set.
+
+Membagi data ke dalam train set (75%) dan test set (25%) adalah praktik standar dalam pembelajaran mesin. Ini memungkinkan kita untuk melatih model pada sebagian data dan mengujinya pada data yang tidak digunakan dalam pelatihan, yang memberikan gambaran yang lebih akurat tentang performa model 
+
+## Modeling
+
+Pada tahap ini, akan membangun sistem rekomendasi berdasarkan fitur overview.
+
+## a. Cosine Similarity
 
 Cosine Similarity adalah metrik yang digunakan untuk mengukur kesamaan antara dua vektor dalam ruang vektor. Metrik ini banyak digunakan dalam pengolahan bahasa alami (NLP), pencarian informasi, dan pembelajaran mesin untuk mengukur seberapa mirip dua dokumen atau vektor fitur.
 
@@ -471,7 +520,7 @@ Cosine Similarity adalah metrik yang digunakan untuk mengukur kesamaan antara du
 
 Cosine Similarity didefinisikan sebagai kosinus sudut antara dua vektor yang dinyatakan dalam rumus berikut:
 
-### Keuntungan
+### Kelebihan
 
 - **Skala Tidak Berpengaruh**: Cosine Similarity tidak terpengaruh oleh magnitudo atau panjang vektor. Ini berarti dua dokumen yang panjangnya berbeda tetapi memiliki konten yang sama akan menghasilkan nilai kesamaan yang sama.
 - **Mudah Dihitung**: Perhitungan menggunakan operasi linier yang sederhana dan efisien.
@@ -578,16 +627,6 @@ data = Dataset.load_from_df(ratings_for_svd, reader)
 
 Data dikonversi ke format Surprise untuk digunakan oleh model SVD.
 
-### Bagi Data ke dalam Train-Test Split
-
-```python 
-trainset, testset = train_test_split(data, test_size=0.25)
-```
-Data dibagi menjadi dua:
-Train set (75%): Untuk melatih model.
-Test set (25%): Untuk mengevaluasi model.
-test_size=0.25 berarti 25% dari data akan menjadi test set.
-
 ### Inisialisasi Model SVD
 
 ```python
@@ -609,6 +648,26 @@ Di dalam fungsi get_movie_recommendations digunakan untuk menampilkan film yang 
 ```python
 ['Beetlejuice', 'Galaxy Quest', 'The Good Thief']
 ```
+
+**Kelebihan SVD**
+
+- Mengurangi Dimensi:
+
+SVD mengurangi dimensi dari data rating yang sangat besar, yang membuatnya lebih mudah untuk diolah dan dianalisis. Ini membantu dalam mempercepat proses komputasi dan mengurangi memori yang dibutuhkan.
+
+- Menangkap Pola Tersembunyi:
+
+Dengan memecah data menjadi matriks faktor, SVD dapat menangkap pola tersembunyi yang ada dalam data. Ini memungkinkan model untuk memahami preferensi pengguna dan karakteristik film yang tidak terlihat secara langsung.
+
+**Kekurangan SVD**
+
+- Kompleksitas Komputasi:
+
+Meskipun SVD efisien dalam prediksi setelah pelatihan, proses pelatihan itu sendiri bisa menjadi sangat intensif secara komputasi, terutama pada dataset yang besar. Ini dapat memerlukan waktu dan sumber daya yang signifikan untuk dilatih.
+
+- Membutuhkan Data yang Cukup:
+
+SVD memerlukan cukup banyak data untuk memberikan hasil yang baik. Jika dataset kecil atau tidak seimbang, SVD mungkin tidak memberikan hasil yang akurat.
 
 ## Evaluasi
 
@@ -674,7 +733,54 @@ Tabel 15: Nama actor dari beberapa film
 
 Dari tabel bisa kita spesifikasikan yang masuk dalam kategori yang benar ada 10 sesuai dari kategori. Artinya Precision sistem sebesar 10/10 atau 100%.
 
-**Collaborative Filtering**
+### Collaborative Filtering 
+
+### RMSE dalam SVD (Singular Value Decomposition)
+
+### Pengertian RMSE
+
+Root Mean Squared Error (RMSE) adalah metrik yang digunakan untuk mengukur seberapa baik prediksi model dibandingkan dengan nilai yang sebenarnya. RMSE memberikan gambaran tentang seberapa jauh prediksi rata-rata dari nilai sebenarnya dan sangat berguna dalam evaluasi model prediksi, termasuk model sistem rekomendasi berbasis SVD.
+
+### Rumus RMSE
+
+Rumus untuk menghitung RMSE adalah sebagai berikut:
+
+$$
+\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}
+$$
+
+### Di mana:
+- \( n \) = jumlah total prediksi (jumlah rating yang diprediksi).
+- \( y_i \) = nilai rating sebenarnya (ground truth).
+- \( \hat{y}_i \) = nilai rating yang diprediksi oleh model.
+
+### Proses Perhitungan RMSE dalam SVD
+
+1. **Mengumpulkan Prediksi**: 
+   - Setelah model SVD dilatih, kita akan menghasilkan prediksi rating untuk film yang belum ditonton oleh pengguna.
+
+2. **Membandingkan dengan Nilai Sebenarnya**: 
+   - Dapatkan nilai rating yang sebenarnya dari dataset untuk film yang sama.
+
+3. **Menghitung Selisih**: 
+   - Hitung selisih antara rating yang diprediksi dan rating yang sebenarnya untuk setiap film.
+
+4. **Kuadratkan Selisih**: 
+   - Kuadratkan setiap selisih yang didapat untuk menghilangkan tanda negatif.
+
+5. **Hitung Rata-rata Kuadrat Selisih**: 
+   - Ambil rata-rata dari semua nilai kuadrat selisih tersebut.
+
+6. **Ambil Akar Kuadrat**: 
+   - Ambil akar kuadrat dari rata-rata kuadrat selisih untuk mendapatkan RMSE.
+
+### Interpretasi RMSE
+
+- **Nilai RMSE Rendah**: Menunjukkan bahwa model memiliki prediksi yang akurat dan dekat dengan nilai sebenarnya.
+- **Nilai RMSE Tinggi**: Menunjukkan bahwa ada perbedaan besar antara prediksi model dan nilai sebenarnya, yang menunjukkan bahwa model perlu diperbaiki atau dilatih lebih lanjut.
+
+Dengan demikian, RMSE adalah metrik yang sangat penting dalam menilai kinerja model SVD dan sistem rekomendasi secara keseluruhan.
+
 
 ### Evaluasi Model
 ```python
